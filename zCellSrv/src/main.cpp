@@ -9,6 +9,7 @@ int main(int argc, char *argv[])
     std::cout << "Hello world" << std::endl;
     int i = 0;
     i++;
+    i++;
 
     return a.exec();
 }
