@@ -1,15 +1,14 @@
 #include <QCoreApplication>
 
-#include <iostream>
+#include "samp.h"
+#include "zcellsrvlib.h"
 
 int main(int argc, char *argv[])
 {
     QCoreApplication a(argc, argv);
 
-    std::cout << "Hello world" << std::endl;
-    int i = 0;
-    i++;
-    i++;
+    ZCellSrvLib v;
+    v.print();
 
     return a.exec();
 }

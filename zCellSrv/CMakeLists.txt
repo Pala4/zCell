@@ -8,53 +8,49 @@ if (WIN32)
 elseif(UNIX)
     project(${project_name} VERSION ${version})
 endif()
+message("Building project: " ${PROJECT_NAME} " ver." ${PROJECT_VERSION})
 
-set(CMAKE_CONFIGURATION_TYPES "Release;RelWithDebInfo" CACHE STRING "" FORCE)
-
-#======================= INCLUSION OF Qt =======================#
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
-
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
 find_package(QT NAMES Qt6 Qt5 COMPONENTS Core REQUIRED)
 find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Core REQUIRED)
 
-#=================== INCLUSION OF Project Files ====================#
-set(INCLUDE_DIR "${CMAKE_SOURCE_DIR}/include")
-set(SOURCE_DIR "${CMAKE_SOURCE_DIR}/src")
-
-include_directories(${INCLUDE_DIR})
-include_directories(${SOURCE_DIR})
+set(INCLUDE_DIR "./include")
+set(SOURCE_DIR "./src")
+message("Include dir: " ${INCLUDE_DIR})
+message("Source dir: " ${SOURCE_DIR})
 
 file(GLOB_RECURSE SOURCES
     "${INCLUDE_DIR}/*.h"
     "${SOURCE_DIR}/*.cpp"
 )
+message("Src project files: " ${SOURCES})
 
-#=================== SETUP EXECTUABLE ====================#
-# Enable debug logging on RELWITHDEBINFO configuration
-set_property(DIRECTORY APPEND PROPERTY COMPILE_DEFINITIONS
-    $<$<CONFIG:RELWITHDEBINFO>:QT_MESSAGELOGCONTEXT>
-)
+set(prj_bin_dir "${CMAKE_SOURCE_DIR}/bin")
+if(DEFINED cfg_zcell_srv_bin_dir)
+  set(prj_bin_dir ${cfg_zcell_srv_bin_dir})
+endif(DEFINED cfg_zcell_srv_bin_dir)
+SET(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${prj_bin_dir})
+message("Binary files will moved in: " ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
 
-set(EXECUTABLE_OUTPUT_PATH "${CMAKE_SOURCE_DIR}/bin")
+add_executable(${PROJECT_NAME} ${SOURCES})
 
-# Add the executable
-if (WIN32) 
-    add_executable(${PROJECT_NAME} WIN32 ${SOURCES})
-elseif(UNIX)
-    add_executable(${PROJECT_NAME} ${SOURCES})
-endif()
-
-# Add the target includes for project
 target_include_directories(${PROJECT_NAME} PRIVATE ${INCLUDE_DIR})
 target_include_directories(${PROJECT_NAME} PRIVATE ${SOURCE_DIR})
 
-#===================== LINKING LIBRARIES =======================#
 target_link_libraries(${PROJECT_NAME} Qt${QT_VERSION_MAJOR}::Core)
 
-#===================== STATUS MESSAGES =======================#
-message("Building project " ${PROJECT_NAME} " ver." ${PROJECT_VERSION})
+if(DEFINED cfg_zcell_srv_lib_path)
+    target_link_libraries(${PROJECT_NAME} ${cfg_zcell_srv_lib_path})
+endif(DEFINED cfg_zcell_srv_lib_path)
+if (DEFINED cfg_zcell_srv_lib_include_path)
+    target_include_directories(${PROJECT_NAME} PRIVATE ${cfg_zcell_srv_lib_include_path})
+else()
+    message(WARNING "Header files for zCellSrvLib is required!
+        See the variable {cfg_zcell_srv_lib_include_path} in CMakeLists.txt")
+endif(DEFINED cfg_zcell_srv_lib_include_path)
