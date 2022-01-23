@@ -9,6 +9,6 @@ set(cfg_zcell_srv_stlib_dir "${CMAKE_SOURCE_DIR}/zCellSrvLib/lib")
 add_subdirectory(./zCellSrvlib)
 
 set(cfg_zcell_srv_bin_dir "${CMAKE_SOURCE_DIR}/zCellBin")
-set(cfg_zcell_srv_lib_path ${CMAKE_SOURCE_DIR}/zCellSrvLib/lib/libzCellSrvLib.dll.a)
-set(cfg_zcell_srv_lib_include_path ${CMAKE_SOURCE_DIR}/zCellSrvLib/include)
+set(cfg_zcell_srv_lib_dir ${CMAKE_SOURCE_DIR}/zCellSrvLib/lib)
+set(cfg_zcell_srv_lib_include_dir ${CMAKE_SOURCE_DIR}/zCellSrvLib/include)
 add_subdirectory(./zCellSrv)
