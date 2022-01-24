@@ -1,5 +1,15 @@
 cmake_minimum_required(VERSION 3.14)
 
+if(NOT DEFINED cfg_zcell_srv_lib_dir)
+    #uncomment that 'set' command to define path to zCellSrvLib library
+    #set(cfg_zcell_srv_lib_dir "zCellSrvLib dir path")
+endif()
+
+if(NOT DEFINED cfg_zcell_srv_lib_include_dir)
+    #uncomment that 'set' command to define path to zCellSrvLib library includes
+    #set(cfg_zcell_srv_lib_include_dir "zCellSrvLib include dir path")
+endif()
+
 set(project_name zCellSrv)  #project name
 set(version 1.0.0.0)        #project version
 
@@ -20,13 +30,14 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 find_package(QT NAMES Qt6 Qt5 COMPONENTS Core REQUIRED)
 find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Core REQUIRED)
 
-set(INCLUDE_DIR "./include")
+#remove that
+find_package(Qt6 COMPONENTS Network REQUIRED)
+
 set(SOURCE_DIR "./src")
-message("Include dir: " ${INCLUDE_DIR})
 message("Source dir: " ${SOURCE_DIR})
 
 file(GLOB_RECURSE SOURCES
-    "${INCLUDE_DIR}/*.h"
+    "${SOURCE_DIR}/*.h"
     "${SOURCE_DIR}/*.cpp"
 )
 message("Src project files: " ${SOURCES})
@@ -45,6 +56,9 @@ target_include_directories(${PROJECT_NAME} PRIVATE ${SOURCE_DIR})
 
 target_link_libraries(${PROJECT_NAME} Qt${QT_VERSION_MAJOR}::Core)
 
+#remove that
+target_link_libraries(${PROJECT_NAME} Qt6::Network)
+
 if(DEFINED cfg_zcell_srv_lib_dir)
     link_directories(${PROJECT_NAME} ${cfg_zcell_srv_lib_dir})
     target_link_libraries(${PROJECT_NAME} zCellSrvLib)
@@ -53,8 +67,14 @@ else()
     message(WARNING "Library zCellSrvLib is required!
         See the variable {cfg_zcell_srv_lib_dir} in CMakeLists.txt")
 endif(DEFINED cfg_zcell_srv_lib_dir)
-if (DEFINED cfg_zcell_srv_lib_include_dir)
-    target_include_directories(${PROJECT_NAME} PRIVATE ${cfg_zcell_srv_lib_include_dir})
+if (DEFINED cfg_zcell_srv_lib_include_dir OR DEFINED cfg_zcell_srv_lib_src_dir)
+    if(EXISTS ${cfg_zcell_srv_lib_src_dir})
+        message(${PROJECT_NAME} " build with lib includes from: " ${cfg_zcell_srv_lib_src_dir})
+        target_include_directories(${PROJECT_NAME} PRIVATE ${cfg_zcell_srv_lib_src_dir})
+    else()
+        message(${PROJECT_NAME} " build with lib includes from: " ${cfg_zcell_srv_lib_include_dir})
+        target_include_directories(${PROJECT_NAME} PRIVATE ${cfg_zcell_srv_lib_include_dir})
+    endif()
 else()
     message(WARNING "Header files for zCellSrvLib is required!
         See the variable {cfg_zcell_srv_lib_include_dir} in CMakeLists.txt")

@@ -17,16 +17,11 @@ set(CMAKE_AUTORCC ON)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-find_package(QT NAMES Qt6 Qt5 COMPONENTS Core REQUIRED)
-find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Core REQUIRED)
-
-set(INCLUDE_DIR "./include")
 set(SOURCE_DIR "./src")
-message("Include dir: " ${INCLUDE_DIR})
 message("Source dir: " ${SOURCE_DIR})
 
 file(GLOB_RECURSE SOURCES
-    "${INCLUDE_DIR}/*.h"
+    "${SOURCE_DIR}/*.h"
     "${SOURCE_DIR}/*.cpp"
 )
 message("Src project files: " ${SOURCES})
@@ -47,9 +42,12 @@ message("Static library files will moved in: " ${CMAKE_ARCHIVE_OUTPUT_DIRECTORY}
 
 add_library(${PROJECT_NAME} SHARED ${SOURCES})
 
-target_include_directories(${PROJECT_NAME} PUBLIC ${INCLUDE_DIR})
 target_include_directories(${PROJECT_NAME} PRIVATE ${SOURCE_DIR})
+target_compile_definitions(${PROJECT_NAME} PRIVATE ZCELLSRVLIB_LIBRARY)
+
+find_package(QT NAMES Qt6 Qt5 COMPONENTS Core REQUIRED)
+find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Core REQUIRED)
+find_package(Qt6 COMPONENTS Network REQUIRED)
 
 target_link_libraries(${PROJECT_NAME} PRIVATE Qt${QT_VERSION_MAJOR}::Core)
-
-target_compile_definitions(${PROJECT_NAME} PRIVATE ZCELLSRVLIB_LIBRARY)
+target_link_libraries(${PROJECT_NAME} PRIVATE Qt6::Network)
