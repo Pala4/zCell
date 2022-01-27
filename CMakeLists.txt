@@ -4,10 +4,12 @@ set(project_name zCell)  #project name
 set(version 1.0.0.0)     #project version
 project(${project_name} VERSION ${version})
 
+#========================zCellLib============================
 set(cfg_zcell_srv_shlib_dir "${CMAKE_SOURCE_DIR}/zCellBin")
 set(cfg_zcell_srv_stlib_dir "${CMAKE_SOURCE_DIR}/zCellSrvLib/lib")
 add_subdirectory(./zCellSrvlib)
 
+#========================zCellSrv============================
 set(cfg_zcell_srv_bin_dir "${CMAKE_SOURCE_DIR}/zCellBin")
 set(cfg_zcell_srv_lib_dir "${CMAKE_SOURCE_DIR}/zCellSrvLib/lib")
 set(cfg_zcell_srv_lib_include_dir "${CMAKE_SOURCE_DIR}/zCellSrvLib/lib/include")
@@ -45,3 +47,8 @@ foreach(lib_inc_with_parent_dir ${lib_includes})
 endforeach(lib_inc_with_parent_dir ${lib_includes})
 
 add_subdirectory(./zCellSrv)
+
+#========================zCellCmd============================
+set(cfg_zcell_cmd_bin_dir "${CMAKE_SOURCE_DIR}/zCellBin")
+
+add_subdirectory(./zCellCmd)

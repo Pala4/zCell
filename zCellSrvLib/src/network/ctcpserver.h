@@ -3,13 +3,18 @@
 
 #include "zCellSrvLib_global.h"
 
-#include<QtNetwork/QTcpServer>
+class QTcpServer;
 
-class ZCELLSRVLIB_EXPORT CTCPServer: public QTcpServer
+class ZCELLSRVLIB_EXPORT CTCPServer
 {
-    Q_OBJECT
+private:
+    QTcpServer *m_tcp_server = nullptr;
 public:
-    explicit CTCPServer(QObject *parent = nullptr);
+    CTCPServer();
+
+    bool start(const char *address, const uint16_t &port);
+
+    virtual ~CTCPServer();
 };
 
 #endif // CTCPSERVER_H

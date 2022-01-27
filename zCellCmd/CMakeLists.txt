@@ -1,17 +1,8 @@
 cmake_minimum_required(VERSION 3.14)
 
-if(NOT DEFINED cfg_zcell_srv_lib_dir)
-    #uncomment that 'set' command to define path to zCellSrvLib library
-    #set(cfg_zcell_srv_lib_dir "zCellSrvLib dir path")
-endif()
-
-if(NOT DEFINED cfg_zcell_srv_lib_include_dir)
-    #uncomment that 'set' command to define path to zCellSrvLib library includes
-    #set(cfg_zcell_srv_lib_include_dir "zCellSrvLib include dir path")
-endif()
-
-set(project_name zCellSrv)  #project name
+set(project_name zCellCmd)  #project name
 set(version 1.0.0.0)        #project version
+project(${project_name} VERSION ${version})
 
 if (WIN32)
     project(${project_name} VERSION ${version} LANGUAGES CXX)
@@ -40,9 +31,9 @@ file(GLOB_RECURSE SOURCES
 message("Src project files: " ${SOURCES})
 
 set(prj_bin_dir "${CMAKE_SOURCE_DIR}/bin")
-if(DEFINED cfg_zcell_srv_bin_dir)
-  set(prj_bin_dir ${cfg_zcell_srv_bin_dir})
-endif(DEFINED cfg_zcell_srv_bin_dir)
+if(DEFINED cfg_zcell_cmd_bin_dir)
+  set(prj_bin_dir ${cfg_zcell_cmd_bin_dir})
+endif(DEFINED cfg_zcell_cmd_bin_dir)
 SET(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${prj_bin_dir})
 message("Binary files will moved in: " ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
 
