@@ -22,7 +22,7 @@ public:
     void start();
     const bool &is_active();
     void do_finish();
-    uint32_t num_jobs() const;
+    uint32_t num_jobs();
     void add_job(const job_t &job);
 
     virtual ~CWorker();
@@ -54,6 +54,7 @@ public:
     const bool &is_started() const;
     bool start();
     bool stop();
+    void add_job(const job_t &job);
 
     virtual ~CThreadPool();
 private:

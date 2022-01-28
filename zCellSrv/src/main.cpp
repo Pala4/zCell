@@ -10,28 +10,36 @@ int main(int argc, char *argv[])
     if (v.start("127.0.0.1", 5356))
         std::cout << "Server starte" << std::endl;
 
-    std::cout << "Creating thread pool" << std::endl;
     zcell_lib::CThreadPool tp;
-    std::cout << "Optimal thread count\t" << tp.optimal_thread_count() << std::endl;
-    std::cout << "Number of threads in pool\t" << tp.num_threads() << std::endl;
-    std::this_thread::sleep_for(std::chrono::milliseconds(5000));
-    std::cout << "Resizing pool" << std::endl;
-    tp.set_num_threads(5);
-    std::cout << "Number of threads in pool\t" << tp.num_threads() << std::endl;
-    std::this_thread::sleep_for(std::chrono::milliseconds(5000));
-    std::cout << "Starting threads..." << std::endl;
     tp.start();
-    std::this_thread::sleep_for(std::chrono::milliseconds(5000));
-    std::cout << "Resizing pool" << std::endl;
-    tp.set_num_threads(8);
-    std::cout << "Number of threads in pool\t" << tp.num_threads() << std::endl;
-    std::this_thread::sleep_for(std::chrono::milliseconds(5000));
-    std::cout << "Resizing pool" << std::endl;
-    tp.set_num_threads(3);
-    std::cout << "Number of threads in pool\t" << tp.num_threads() << std::endl;
-    std::this_thread::sleep_for(std::chrono::milliseconds(5000));
-    std::cout << "Stopping threads..." << std::endl;
+    tp.add_job([]() {
+        std::this_thread::sleep_for(std::chrono::milliseconds(20000));
+        std::cout << "Job1" << std::endl;
+    });
+    tp.add_job([]() {
+        std::this_thread::sleep_for(std::chrono::milliseconds(20000));
+        std::cout << "Job2" << std::endl;
+    });
+    tp.add_job([]() {
+        std::this_thread::sleep_for(std::chrono::milliseconds(20000));
+        std::cout << "Job3" << std::endl;
+    });
+    tp.add_job([]() {
+        std::this_thread::sleep_for(std::chrono::milliseconds(20000));
+        std::cout << "Job4" << std::endl;
+    });
+    tp.add_job([]() {
+        std::this_thread::sleep_for(std::chrono::milliseconds(20000));
+        std::cout << "Job5" << std::endl;
+    });
+    tp.add_job([]() {
+        std::this_thread::sleep_for(std::chrono::milliseconds(20000));
+        std::cout << "Job6" << std::endl;
+    });
+    tp.add_job([]() {
+        std::this_thread::sleep_for(std::chrono::milliseconds(20000));
+        std::cout << "Job7" << std::endl;
+    });
+    std::this_thread::sleep_for(std::chrono::minutes(2));
     tp.stop();
-    std::this_thread::sleep_for(std::chrono::milliseconds(10000));
-    std::cout << "=====End=====" << std::endl;
 }

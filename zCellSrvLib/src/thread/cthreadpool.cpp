@@ -1,7 +1,7 @@
 #include "cthreadpool.h"
 
-#include <iostream>
 #include <chrono>
+#include <algorithm>
 
 using namespace zcell_lib;
 
@@ -10,11 +10,8 @@ using namespace zcell_lib;
  */
 void CWorker::start()
 {
-    if (!is_active()) {
+    if (!is_active())
         m_thread = std::thread(&CWorker::work, this);
-        std::cout << "Worker is started id = " << id() <<
-                     ". Tread is started thread id = " << m_thread.get_id() << std::endl;
-    }
 }
 
 const bool &CWorker::is_active()
@@ -28,8 +25,9 @@ void CWorker::do_finish()
     set_do_finish_state(true);
 }
 
-uint32_t CWorker::num_jobs() const
+uint32_t CWorker::num_jobs()
 {
+    std::lock_guard lg(m_mtx_job_queue);
     return m_job_queue.size();
 }
 
@@ -43,8 +41,6 @@ CWorker::~CWorker()
 {
     if (m_thread.joinable())
         m_thread.join();
-    std::cout << "Worker is terminated id = " << id() <<
-                 ". Current thread id = " << std::this_thread::get_id() << std::endl;
 }
 
 void CWorker::set_active_state(const bool &active_sate)
@@ -67,29 +63,26 @@ const bool &CWorker::is_do_finishing()
 
 void CWorker::next_job()
 {
-    std::lock_guard lg(m_mtx_job_queue);
+    m_mtx_job_queue.lock();
     if (!m_job_queue.empty()) {
         job_t job = m_job_queue.front();
-        m_job_queue.pop();
+        m_mtx_job_queue.unlock();
         if (job != nullptr)
             job();
+        m_mtx_job_queue.lock();
+        m_job_queue.pop();
     }
+    m_mtx_job_queue.unlock();
 }
 
 void CWorker::work()
 {
     set_active_state(true);
     set_do_finish_state(false);
-    while (true && !is_do_finishing()) {
-        std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-        std::cout << "Worker is doing work id = " << id() <<
-                     ". Current thread id = " << m_thread.get_id() << std::endl;
+    while (true && !is_do_finishing())
         next_job();
-    }
     set_active_state(false);
     set_do_finish_state(true);
-    std::cout << "Worker is done id = " << id() <<
-                 ". Current thread id = " << m_thread.get_id() << std::endl;
 }
 
 /*!
@@ -169,6 +162,20 @@ bool CThreadPool::stop()
     m_started = false;
 
     return true;
+}
+
+void CThreadPool::add_job(const job_t &job)
+{
+    if (!m_started)
+        return;
+    CWorker *min_job_worker = *std::min_element(m_workers.begin(), m_workers.end(),
+        [](CWorker *wrk_a, CWorker *wrk_b){
+            if ((wrk_a != nullptr) && (wrk_b != nullptr))
+                return wrk_a->num_jobs() < wrk_b->num_jobs();
+            return false;
+        });
+    if (min_job_worker != nullptr)
+        min_job_worker->add_job(job);
 }
 
 CThreadPool::~CThreadPool()
