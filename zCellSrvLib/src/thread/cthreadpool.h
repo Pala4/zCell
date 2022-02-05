@@ -2,65 +2,47 @@
 #define CTHREADPOOL_H
 
 #include <vector>
-#include <mutex>
-#include <thread>
-#include <queue>
-#include <functional>
 
 #include "zCellSrvLib_global.h"
+#include "cworker.h"
 
 namespace zcell_lib {
-
-typedef std::function<void()> job_t;
-
-class CWorker
-{
-public:
-    CWorker(const uint16_t &id){m_id = id;}
-
-    const uint16_t &id() const{return m_id;}
-    void start();
-    const bool &is_active();
-    void do_finish();
-    uint32_t num_jobs();
-    void add_job(const job_t &job);
-
-    virtual ~CWorker();
-private:
-    uint16_t m_id = 0;
-    std::thread m_thread;
-    std::mutex m_mtx_active;
-    std::mutex m_mtx_do_finish;
-    std::mutex m_mtx_job_queue;
-    bool m_active = false;
-    bool m_do_finish = true;
-    std::queue<job_t> m_job_queue;
-
-    void set_active_state(const bool &active_sate);
-    void set_do_finish_state(const bool &do_finish_state);
-    const bool &is_do_finishing();
-    void next_job();
-    void work();
-};
 
 class ZCELLSRVLIB_EXPORT CThreadPool
 {
 public:
     CThreadPool();
 
-    uint16_t optimal_thread_count() const;
-    void set_num_threads(const uint16_t &num_threads);
-    const uint16_t &num_threads() const;
+    const bool &is_calc_idle_fps() const;
+    void set_calc_idle_fps(const bool &calc_idle_fps);
+    const uint32_t &idle_fps_vol() const;
+    void set_idle_fps_vol(const uint32_t &idle_fps_vol);
+    const uint8_t &num_idle_fps_average_period();
+    void set_num_idle_fps_average_period(const uint8_t &num_idle_fps_average_period);
+
+    uint16_t optimal_workers_count() const;
+    void set_num_workers(const uint16_t &num_workers);
+    const uint16_t &num_workers() const;
+    CWorker *get_worker(const uint16_t &worker_idx);
+    CWorker *get_min_load_worker() const;
     const bool &is_started() const;
     bool start();
     bool stop();
-    void add_job(const job_t &job);
+    bool add_job(const CJob::function_t &function);
+    bool add_job(CJob *job);
+    void set_hld_last_job(const CWorker::hld_last_job_t &hld_last_job);
 
     virtual ~CThreadPool();
 private:
-    uint16_t m_num_threads = 0;
+    bool m_calc_idle_fps = false;
+    uint32_t m_idle_fps_vol = 0;
+    uint8_t m_num_idle_fps_average_period = 0;
+    uint16_t m_num_workers = 0;
     bool m_started = false;
     std::vector<CWorker*> m_workers;
+    CWorker::hld_last_job_t m_hld_last_job = nullptr;
+
+    CWorker *add_worker(const uint16_t &id);
 };
 
 } // namespace zcell_lib
