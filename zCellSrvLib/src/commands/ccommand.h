@@ -38,8 +38,8 @@ public:
     CCommand(const std::string &name, const bool &multy_thread, const function_t &func);
 
     CCommand& set_name(const std::string &name);
-    const bool& is_multy_thread();
-    CCommand& set_multy_thread(const bool &multy_thread);
+    const bool& is_async();
+    CCommand& set_async(const bool &async);
     const std::map<std::string, converter_ptr_t> &convertors();
     CCommand& add_convertor(const std::string &name, const converter_ptr_t &convertor);
 
@@ -48,8 +48,8 @@ public:
 
     virtual ~CCommand() = default;
 private:
-    std::mutex m_mtx_multy_thread;
-    bool m_multy_thread = false;
+    std::mutex m_mtx_async;
+    bool m_async = false;
     std::mutex m_mtx_convertors;
     std::map<std::string, converter_ptr_t> m_convertors;
 };

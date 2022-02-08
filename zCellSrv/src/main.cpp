@@ -15,7 +15,7 @@ int main(int argc, char *argv[])
     zcell_lib::CServer v;
     auto cmd_test = std::make_shared<zcell_lib::CCommand>();
     cmd_test->set_name("test").
-            set_multy_thread(true).
+            set_async(true).
             set_function([&v](zcell_lib::CJobBase *job, const zcell_lib::CJobBase::args_map_t &args) {
         if (args.find("net_data") != args.end()) {
             zcell_lib::net_data_t net_data;

@@ -13,7 +13,7 @@ int main(int argc, char *argv[])
 
     auto cmd_exit = std::make_shared<zcell_lib::CCommand>();
     cmd_exit->set_name("exit").
-            set_multy_thread(false).
+            set_async(false).
             set_function([&app, &client](zcell_lib::CJobBase *job,
                          const zcell_lib::CJob_::args_map_t &args) {
         client.done_input();
@@ -23,7 +23,7 @@ int main(int argc, char *argv[])
 
     auto cmd_connect = std::make_shared<zcell_lib::CCommand>();
     cmd_connect->set_name("connect").
-            set_multy_thread(false).
+            set_async(false).
             add_convertor("-a", zcell_lib::convertor<zcell_lib::CStringConvertor>()).
             add_convertor("-p", zcell_lib::convertor<zcell_lib::CIntConvertor>()).
             set_function([&client](zcell_lib::CJobBase *job,
@@ -41,7 +41,7 @@ int main(int argc, char *argv[])
 
     auto cmd_send = std::make_shared<zcell_lib::CCommand>();
     cmd_send->set_name("send").
-            set_multy_thread(true).
+            set_async(true).
             add_convertor("-cid", zcell_lib::convertor<zcell_lib::CStringConvertor>()).
             add_convertor("-cmd", zcell_lib::convertor<zcell_lib::CStringConvertor>()).
             set_function([&client](zcell_lib::CJobBase *job,
@@ -58,7 +58,7 @@ int main(int argc, char *argv[])
 
     auto cmd_test = std::make_shared<zcell_lib::CCommand>();
     cmd_test->set_name("test").
-            set_multy_thread(true).
+            set_async(true).
             set_function([&client](zcell_lib::CJobBase *job,
                          const zcell_lib::CJob_::args_map_t &args) {
         if (job->worker() != nullptr) {

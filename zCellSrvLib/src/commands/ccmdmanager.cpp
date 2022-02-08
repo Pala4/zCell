@@ -71,7 +71,7 @@ void CCmdManager::execute(const std::string &cmd_line, const CCommand::args_map_
         if ((args.find(ext_arg_pair.first) == args.end()) && (!ext_arg_pair.first.empty()))
             args[ext_arg_pair.first] = ext_arg_pair.second;
     }
-    if (cmd->is_multy_thread()) {
+    if (cmd->is_async()) {
         if (m_thread_pool != nullptr) {
             auto cmd_exe = cmd->get_cmd_execution_instace();
             cmd_exe->set_args(args);

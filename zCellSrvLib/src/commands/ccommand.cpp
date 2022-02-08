@@ -52,7 +52,7 @@ CCommand::CCommand() : CCmdExecution()
 CCommand::CCommand(const std::string &name, const bool &multy_thread, const function_t &func) :
     CCmdExecution(name, func, args_map_t())
 {
-    m_multy_thread = multy_thread;
+    m_async = multy_thread;
 }
 
 CCommand &CCommand::set_name(const std::string &name)
@@ -61,16 +61,16 @@ CCommand &CCommand::set_name(const std::string &name)
     return *this;
 }
 
-const bool &CCommand::is_multy_thread()
+const bool &CCommand::is_async()
 {
-    std::lock_guard lg(m_mtx_multy_thread);
-    return m_multy_thread;
+    std::lock_guard lg(m_mtx_async);
+    return m_async;
 }
 
-CCommand &CCommand::set_multy_thread(const bool &multy_thread)
+CCommand &CCommand::set_async(const bool &async)
 {
-    std::lock_guard lg(m_mtx_multy_thread);
-    m_multy_thread = multy_thread;
+    std::lock_guard lg(m_mtx_async);
+    m_async = async;
     return *this;
 }
 
