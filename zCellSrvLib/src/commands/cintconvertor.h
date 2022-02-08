@@ -9,7 +9,7 @@ namespace zcell_lib {
 class ZCELLSRVLIB_EXPORT CIntConvertor : public CConvertor
 {
 public:
-    CIntConvertor();
+    CIntConvertor() = default;
 
     virtual bool convert(const std::string &val_str, std::any &any_val);
 };

@@ -12,7 +12,7 @@ namespace zcell_lib {
 class ZCELLSRVLIB_EXPORT CClient : public CNetApplication
 {
 public:
-    CClient();
+    CClient() = default;
 
     bool add_command(const command_ptr_t &command);
 

@@ -6,16 +6,13 @@
 #include "thread/cworker.h"
 #include "commands/cintconvertor.h"
 #include "commands/cstringconvertor.h"
+#include "core/cexception.h"
 
 using namespace zcell_lib;
 
 /*!
  * \class CClient
  */
-CClient::CClient() : CNetApplication()
-{
-}
-
 bool CClient::add_command(const command_ptr_t &command)
 {
     if (cmd_manager() == nullptr)
@@ -52,6 +49,7 @@ void CClient::output(const std::string &out, const bool &out_prompt)
     std::lock_guard lg(m_mtx_output);
     if (is_now_input()) std::cout << '\n';
     std::cout << out;
+    if (out_prompt) std::cout << '\n';
     if (is_now_input()) std::cout << "zcell_client>: ";
 }
 
@@ -64,7 +62,7 @@ CClient::~CClient()
 
 void CClient::process_net_data(const net_data_ptr_t &net_data)
 {
-    output(net_data->msg + '\n');
+    output(net_data->msg);
 }
 
 void CClient::set_input_active(const bool &input_active)
@@ -85,8 +83,11 @@ void CClient::input_func()
         }
         set_now_input(false);
         if (cmd_manager() != nullptr) {
-            if (!cmd_manager()->execute(input))
-                output("Error: incorrect command format\n", false);
+            try {
+                cmd_manager()->execute(input);
+            } catch (CException &ex) {
+                output(ex.what());
+            }
         }
     }
 }

@@ -1,28 +1,63 @@
 #include "ccommand.h"
 
+#include <iostream>
+
 using namespace zcell_lib;
 
-CCommand::CCommand() : CJobImpl(nullptr, CJob_::jt_linear)
+/*!
+ * \class CCmdExecution
+ */
+CCmdExecution::CCmdExecution() : CJobImpl(nullptr, CJob_::jt_linear)
 {
 }
 
-CCommand::CCommand(const std::string &name, const bool &multy_thread, const function_t &func) :
+CCmdExecution::CCmdExecution(const std::string &name, const function_t &func,
+                             const args_map_t &_args) :
     CJobImpl(func, CJob_::jt_linear)
 {
     m_name = name;
-    m_multy_thread = multy_thread;
+    set_args(_args);
 }
 
-const std::string &CCommand::name()
+const std::string &CCmdExecution::name()
 {
     std::lock_guard lg(m_mtx_name);
     return m_name;
 }
 
-CCommand &CCommand::set_name(const std::string &name)
+void CCmdExecution::set_name(const std::string &name)
 {
     std::lock_guard lg(m_mtx_name);
     m_name = name;
+}
+
+void CCmdExecution::execute(const args_map_t &args)
+{
+    set_args(args);
+    run(nullptr);
+}
+
+void CCmdExecution::do_function()
+{
+    m_function(this, args());
+}
+
+/*!
+ * \class CCommand
+ */
+CCommand::CCommand() : CCmdExecution()
+{
+}
+
+CCommand::CCommand(const std::string &name, const bool &multy_thread, const function_t &func) :
+    CCmdExecution(name, func, args_map_t())
+{
+    m_multy_thread = multy_thread;
+}
+
+CCommand &CCommand::set_name(const std::string &name)
+{
+    CCmdExecution::set_name(name);
     return *this;
 }
 
@@ -53,17 +88,14 @@ CCommand &CCommand::add_convertor(const std::string &name, const converter_ptr_t
     return *this;
 }
 
-void CCommand::execute(const args_map_t &args)
+cmd_execution_ptr_t CCommand::get_cmd_execution_instace_()
 {
-    set_args(args);
-    run(nullptr);
+    return std::make_unique<CCmdExecution>(name(), function(), args());
 }
 
-CCommand::~CCommand()
+CCmdExecution *CCommand::get_cmd_execution_instace()
 {
-}
-
-void CCommand::do_function()
-{
-    m_function(this, args());
+    auto cmd_exe = new CCmdExecution(name(), function(), args());
+    cmd_exe->set_job_type(CJobBase::jt_linear_auto);
+    return cmd_exe;
 }

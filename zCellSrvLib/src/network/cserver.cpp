@@ -26,22 +26,6 @@ void CTcpServer::incomingConnection(qintptr socketDescriptor)
  */
 CServer::CServer() : CNetApplication()
 {
-    command_ptr_t cmd_test = std::make_shared<CCommand>();
-    cmd_test->set_name("test").
-            set_multy_thread(true).
-            set_function([this](CJobBase *job, const CJob_::args_map_t &args) {
-        if (args.find("net_data") != args.end()) {
-            net_data_t net_data;
-            try {
-                net_data = std::any_cast<net_data_t>(args.at("net_data"));
-            } catch (const std::bad_any_cast& e) {
-                return;
-            }
-            send_net_data(std::make_unique<net_data_t>(net_data));
-        }
-    });
-    cmd_manager()->add_command(cmd_test);
-
     m_tcp_server = new CTcpServer([this](int socket_descriptor) {
         add_socket_task(socket_descriptor);
     });

@@ -2,11 +2,9 @@
 
 #include <stdexcept>
 
-using namespace zcell_lib;
+#include "core/cexception.h"
 
-CIntConvertor::CIntConvertor()
-{
-}
+using namespace zcell_lib;
 
 bool CIntConvertor::convert(const std::string &val_str, std::any &any_val)
 {
@@ -14,10 +12,12 @@ bool CIntConvertor::convert(const std::string &val_str, std::any &any_val)
     try {
         val_int = std::stoi(val_str);
     } catch (std::invalid_argument const &ex) {
-        throw ex.what();
+        throw CException("CIntConvertor error: incorrect value [" + val_str + "]" +
+                         " (" + ex.what() + ")\n");
         return false;
     } catch (std::out_of_range const &ex) {
-        throw ex.what();
+        throw CException("CIntConvertor error: incorrect value [" + val_str + "]" +
+                         " (" + ex.what() + ")\n");
         return false;
     }
     any_val = std::make_any<int>(val_int);

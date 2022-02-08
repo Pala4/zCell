@@ -21,7 +21,7 @@ public:
     command_ptr_t create_command(const std::string &cmd_name, const bool &multy_thread,
                                  const CCommand::function_t &func);
     bool add_command(const command_ptr_t &command);
-    bool execute(const std::string &cmd_line,
+    void execute(const std::string &cmd_line,
                  const CCommand::args_map_t &ext_args = CCommand::args_map_t());
 
     virtual ~CCmdManager() = default;

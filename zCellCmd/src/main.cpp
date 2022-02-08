@@ -32,9 +32,9 @@ int main(int argc, char *argv[])
         auto client_id = client.connect_to_host(std::any_cast<std::string>(args.at("-a")),
                                                 std::any_cast<int>(args.at("-p")));
         if (client_id.empty()) {
-            client.output("Error: connection not established!\n");
+            client.output("Error: connection not established!");
         } else {
-            client.output("Connection established. Client id (cid): " + client_id + '\n');
+            client.output("Connection established. Client id (cid): " + client_id);
         }
     });
     client.add_command(cmd_connect);
@@ -51,7 +51,7 @@ int main(int argc, char *argv[])
         net_data->net_data_id = std::any_cast<std::string>(args.at("-cid"));
         net_data->msg = std::any_cast<std::string>(args.at("-cmd"));
         if (!client.send_net_data(std::move(net_data))) {
-            client.output("Error: data not sended!\n");
+            client.output("Error: data not sended!");
         }
     });
     client.add_command(cmd_send);
@@ -64,12 +64,12 @@ int main(int argc, char *argv[])
         if (job->worker() != nullptr) {
             for (int i = 0; i < 8; ++i) {
                 client.output(std::to_string(i) + " from thread wrk id: " +
-                              job->id() + '\n');// std::to_string(job->worker()->id())
+                              job->id());// std::to_string(job->worker()->id())
                 std::this_thread::sleep_for(std::chrono::milliseconds(1000));
             }
         } else {
             for (int i = 0; i < 10; ++i) {
-                client.output(std::to_string(i) + " from unthread" + '\n');
+                client.output(std::to_string(i) + " from unthread");
                 std::this_thread::sleep_for(std::chrono::milliseconds(1000));
             }
         }

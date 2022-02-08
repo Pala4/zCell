@@ -10,30 +10,44 @@
 
 namespace zcell_lib {
 
+class ZCELLSRVLIB_EXPORT CCmdExecution :
+        public CJobImpl<void(CCmdExecution *cmd_execution, const CJobBase::args_map_t &args)>
+{
+public:
+    CCmdExecution();
+    CCmdExecution(const std::string &name, const function_t &funcconst, const args_map_t &_args);
 
+    const std::string &name();
+    void set_name(const std::string &name);
+    void execute(const args_map_t &args);
 
-class ZCELLSRVLIB_EXPORT CCommand :
-        public CJobImpl<void(CCommand *cmd, const CJobBase::args_map_t &args)>
+    virtual ~CCmdExecution() = default;
+protected:
+    virtual void do_function() override;
+private:
+    std::mutex m_mtx_name;
+    std::string m_name;
+};
+
+typedef std::unique_ptr<CCmdExecution> cmd_execution_ptr_t;
+
+class ZCELLSRVLIB_EXPORT CCommand : public CCmdExecution
 {
 public:
     CCommand();
     CCommand(const std::string &name, const bool &multy_thread, const function_t &func);
 
-    const std::string &name();
     CCommand& set_name(const std::string &name);
     const bool& is_multy_thread();
     CCommand& set_multy_thread(const bool &multy_thread);
     const std::map<std::string, converter_ptr_t> &convertors();
     CCommand& add_convertor(const std::string &name, const converter_ptr_t &convertor);
 
-    void execute(const args_map_t &args);
+    cmd_execution_ptr_t get_cmd_execution_instace_();
+    CCmdExecution *get_cmd_execution_instace();
 
-    virtual ~CCommand();
-protected:
-    virtual void do_function();
+    virtual ~CCommand() = default;
 private:
-    std::mutex m_mtx_name;
-    std::string m_name;
     std::mutex m_mtx_multy_thread;
     bool m_multy_thread = false;
     std::mutex m_mtx_convertors;

@@ -4,6 +4,7 @@
 
 #include "ccommand.h"
 #include "thread/cthreadpool.h"
+#include "core/cexception.h"
 
 using namespace zcell_lib;
 
@@ -32,32 +33,38 @@ bool CCmdManager::add_command(const command_ptr_t &command)
     return true;
 }
 
-bool CCmdManager::execute(const std::string &cmd_line, const CCommand::args_map_t &ext_args)
+void CCmdManager::execute(const std::string &cmd_line, const CCommand::args_map_t &ext_args)
 {
     std::vector<std::string> cmd_list = split(cmd_line, ' ');
     if (cmd_list.empty())
-        return false;
+        throw CException("Command pars error: command line is empty");
     std::string cmd_name = cmd_list.at(0);
     if (cmd_name.empty() || (m_commands.find(cmd_name) == m_commands.end()))
-        return false;
+        throw CException("Command pars error: unknown command [" + cmd_name + "]");
     command_ptr_t cmd = m_commands[cmd_name];
     if (!cmd)
-        return false;
+        throw CException("Command pars error: command not registered [" + cmd_name + "]");
     std::map<std::string, std::any> args;
-    if (cmd_list.size() - 1 != cmd->convertors().size()*2)
-        return false;
+    if (cmd_list.size() - 1 != cmd->convertors().size()*2) {
+        throw CException("Command pars error: more arguments of the function are required [" +
+                         cmd_name + "]");
+    }
     for (int idx = 1; idx < cmd_list.size(); idx += 2) {
         if (idx + 1 >= cmd_list.size())
             break;
         std::string arg_name = cmd_list.at(idx);
         std::string arg_val_str = cmd_list.at(idx + 1);
         if (cmd->convertors().find(arg_name) == cmd->convertors().end())
-            return false;
-        if (!cmd->convertors().at(arg_name))
-            return false;
+            throw CException("Command pars error: unknown argument [" + arg_name + "]");
+        if (!cmd->convertors().at(arg_name)) {
+            throw CException("Command pars error: convertors for argument [" + arg_name +
+                             "] not registered");
+        }
         std::any any_val;
-        if (!cmd->convertors().at(arg_name)->convert(arg_val_str, any_val))
-            return false;
+        if (!cmd->convertors().at(arg_name)->convert(arg_val_str, any_val)) {
+            throw CException("Command pars error: can't convert argument [" + arg_name +
+                             "]");
+        }
         args[arg_name] = any_val;
     }
     for (const auto &ext_arg_pair : ext_args) {
@@ -66,14 +73,13 @@ bool CCmdManager::execute(const std::string &cmd_line, const CCommand::args_map_
     }
     if (cmd->is_multy_thread()) {
         if (m_thread_pool != nullptr) {
-            cmd->set_args(args);
-            m_thread_pool->add_job(cmd.get());
+            auto cmd_exe = cmd->get_cmd_execution_instace();
+            cmd_exe->set_args(args);
+            m_thread_pool->add_job(cmd_exe);
         }
     } else {
         cmd->execute(args);
     }
-
-    return true;
 }
 
 std::vector<std::string> CCmdManager::split(const std::string &s, char delim)
