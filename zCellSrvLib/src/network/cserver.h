@@ -33,7 +33,7 @@ public:
 
     virtual ~CServer();
 protected:
-    void process_net_data(std::unique_ptr<net_data_t> net_data);
+    virtual void process_net_data(const net_data_ptr_t &net_data);
 private:
     CTcpServer *m_tcp_server = nullptr;
 };

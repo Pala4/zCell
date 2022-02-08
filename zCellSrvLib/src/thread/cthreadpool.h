@@ -28,8 +28,8 @@ public:
     const bool &is_started() const;
     bool start();
     bool stop();
-    bool add_job(const CJob::function_t &function);
-    bool add_job(CJob *job);
+    bool add_job(const CJob_::function_t &function);
+    bool add_job(CJobBase *job);
     void set_hld_last_job(const CWorker::hld_last_job_t &hld_last_job);
 
     virtual ~CThreadPool();

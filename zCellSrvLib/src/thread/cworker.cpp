@@ -30,9 +30,9 @@ uint32_t CWorker::num_jobs()
     return m_job_queue.size();
 }
 
-bool CWorker::add_job(const CJob::function_t &function)
+bool CWorker::add_job(const CJob_::function_t &function)
 {
-    CJob *job = new CJob(function, CJob::jt_linear_auto);
+    CJob_ *job = new CJob_(function, CJob_::jt_linear_auto);
     if (!add_job(job)) {
         delete job;
         return false;
@@ -40,7 +40,7 @@ bool CWorker::add_job(const CJob::function_t &function)
     return true;
 }
 
-bool CWorker::add_job(CJob *job)
+bool CWorker::add_job(CJobBase *job)
 {
     if (job == nullptr)
         return false;
@@ -144,25 +144,27 @@ const bool &CWorker::is_do_finishing()
  * CJob::jt_ring, job after processing, will be moved to the
  * last position in queue, and return - nullptr
  */
-CJob *CWorker::next_job()
+CJobBase *CWorker::next_job()
 {
+    CJobBase *job = nullptr;
     m_mtx_job_queue.lock();
-    if (!m_job_queue.empty()) {
-        CJob *job = m_job_queue.front();
-        m_mtx_job_queue.unlock();
-        if (job != nullptr)
-            job->run(this);
+    if (!m_job_queue.empty())
+        job = m_job_queue.front();
+    m_mtx_job_queue.unlock();
+    if (job != nullptr) {
+        job->run(this);
         m_mtx_job_queue.lock();
         m_job_queue.pop();
-        if ((job != nullptr) && (job->job_type() == CJob::jt_linear_auto)) {
+        m_mtx_job_queue.unlock();
+        if (job->job_type() == CJob_::jt_linear_auto) {
             delete job;
-        } else if ((job != nullptr) && (job->job_type() == CJob::jt_ring)) {
+        } else if (job->job_type() == CJob_::jt_ring) {
+            m_mtx_job_queue.lock();
             m_job_queue.push(job);
-        } else {
+            m_mtx_job_queue.unlock();
+        } else if (job->job_type() == CJob_::jt_linear)
             return job;
-        }
     }
-    m_mtx_job_queue.unlock();
     return nullptr;
 }
 
@@ -198,7 +200,7 @@ void CWorker::work()
                 set_idle_fps(fps);
             }
         }
-        CJob *last_job = next_job();
+        CJobBase *last_job = next_job();
         if (last_job != nullptr) {
             if (m_hld_last_job != nullptr)
                 m_hld_last_job(last_job);

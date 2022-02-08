@@ -43,6 +43,8 @@ bool CTcpSocket::connectToHost(const std::string &address, const uint16_t &port)
 
 void CTcpSocket::send_data(const std::string &data)
 {
+    if (data.empty())
+        return;
     auto data_size = data.size();
     std::string data_ = std::to_string(data_size) + "ds";
     data_.resize(22);

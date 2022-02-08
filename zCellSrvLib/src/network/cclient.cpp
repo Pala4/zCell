@@ -2,8 +2,10 @@
 
 #include <iostream>
 
-#include <commands/ccmdmanager.h>
-#include <thread/cworker.h>
+#include "commands/ccmdmanager.h"
+#include "thread/cworker.h"
+#include "commands/cintconvertor.h"
+#include "commands/cstringconvertor.h"
 
 using namespace zcell_lib;
 
@@ -12,48 +14,13 @@ using namespace zcell_lib;
  */
 CClient::CClient() : CNetApplication()
 {
-    cmd_manager()->create_command("connect_to_host", false,
-                                  [this](CJob *job, const CJob::args_map_t &args) {
-        if (args.find("-a") == args.end())
-            return;
-        if (args.find("-p") == args.end())
-            return;
+}
 
-        auto client_id = connect_to_host(std::any_cast<std::string>(args.at("-a")),
-                                         std::stoi(std::any_cast<std::string>(args.at("-p"))));
-        if (client_id.empty()) {
-            output("Error: connection not established!");
-        } else {
-            output("Connection established. Client id (cid): " + client_id);
-        }
-    });
-    cmd_manager()->create_command("test", true,
-                                  [this](CJob *job, const CJob::args_map_t &args) {
-        if (job->worker() != nullptr) {
-            for (int i = 0; i < 10; ++i) {
-                output(std::to_string(i) + " from thread wrk id: " +
-                       std::to_string(job->worker()->id()) + '\n');
-                std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-            }
-        } else {
-            for (int i = 0; i < 10; ++i) {
-                output(std::to_string(i) + " from unthread" + '\n');
-                std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-            }
-        }
-    });
-    cmd_manager()->create_command("send_cmd_to_host", false,
-                                  [this](CJob *job, const CJob::args_map_t &args) {
-        if (args.find("-cid") == args.end())
-            return;
-        if (args.find("-cmd") == args.end())
-            return;
-        auto net_data = std::make_unique<zcell_lib::net_data_t>();
-        //TODO: what if -cid is not correct?
-        net_data->net_data_id = std::any_cast<std::string>(args.at("-cid"));
-        net_data->msg = std::any_cast<std::string>(args.at("-cmd"));
-        send_net_data(std::move(net_data));
-    });
+bool CClient::add_command(const command_ptr_t &command)
+{
+    if (cmd_manager() == nullptr)
+        return false;
+    return cmd_manager()->add_command(command);
 }
 
 std::string CClient::connect_to_host(const std::string &address, const uint16_t &port)
@@ -83,9 +50,9 @@ void CClient::done_input()
 void CClient::output(const std::string &out, const bool &out_prompt)
 {
     std::lock_guard lg(m_mtx_output);
-    if (out_prompt) std::cout << '\n' << "zcell_client>: ";
+    if (is_now_input()) std::cout << '\n';
     std::cout << out;
-    if (out_prompt) std::cout << "zcell_client>: ";
+    if (is_now_input()) std::cout << "zcell_client>: ";
 }
 
 CClient::~CClient()
@@ -95,7 +62,7 @@ CClient::~CClient()
         m_input_thread.join();
 }
 
-void CClient::process_net_data(std::unique_ptr<net_data_t> net_data)
+void CClient::process_net_data(const net_data_ptr_t &net_data)
 {
     output(net_data->msg + '\n');
 }
@@ -112,10 +79,26 @@ void CClient::input_func()
         output("zcell_client>: ", false);
         std::string input;
         char ch;
+        set_now_input(true);
         while (std::cin.get(ch) && ch != '\n') {
             input.append(1, ch);
         }
-        if (cmd_manager() != nullptr)
-            cmd_manager()->execute(input);
+        set_now_input(false);
+        if (cmd_manager() != nullptr) {
+            if (!cmd_manager()->execute(input))
+                output("Error: incorrect command format\n", false);
+        }
     }
+}
+
+const bool &CClient::is_now_input()
+{
+    std::lock_guard lg(m_mtx_now_input);
+    return m_now_input;
+}
+
+void CClient::set_now_input(const bool &now_input)
+{
+    std::lock_guard lg(m_mtx_now_input);
+    m_now_input = now_input;
 }

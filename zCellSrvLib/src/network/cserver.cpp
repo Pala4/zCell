@@ -26,7 +26,10 @@ void CTcpServer::incomingConnection(qintptr socketDescriptor)
  */
 CServer::CServer() : CNetApplication()
 {
-    cmd_manager()->create_command("test", true, [this](CJob *job, const CJob::args_map_t &args) {
+    command_ptr_t cmd_test = std::make_shared<CCommand>();
+    cmd_test->set_name("test").
+            set_multy_thread(true).
+            set_function([this](CJobBase *job, const CJob_::args_map_t &args) {
         if (args.find("net_data") != args.end()) {
             net_data_t net_data;
             try {
@@ -37,6 +40,8 @@ CServer::CServer() : CNetApplication()
             send_net_data(std::make_unique<net_data_t>(net_data));
         }
     });
+    cmd_manager()->add_command(cmd_test);
+
     m_tcp_server = new CTcpServer([this](int socket_descriptor) {
         add_socket_task(socket_descriptor);
     });
@@ -57,12 +62,12 @@ CServer::~CServer()
         delete m_tcp_server;
 }
 
-void CServer::process_net_data(std::unique_ptr<net_data_t> net_data)
+void CServer::process_net_data(const net_data_ptr_t &net_data)
 {
     if (net_data) {
         if (cmd_manager() != nullptr) {
             auto _net_data = *net_data.get();
-            CJob::args_map_t ext_args;
+            CJob_::args_map_t ext_args;
             ext_args["net_data"] = std::make_any<net_data_t>(_net_data);
             cmd_manager()->execute(net_data->msg, ext_args);
         }

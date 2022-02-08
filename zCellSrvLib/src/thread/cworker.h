@@ -6,14 +6,14 @@
 #include <queue>
 
 #include "zCellSrvLib_global.h"
-#include "cjob.h"
+#include "cjob_.h"
 
 namespace zcell_lib {
 
 class ZCELLSRVLIB_EXPORT CWorker
 {
 public:
-    typedef std::function<void(CJob *job)> hld_last_job_t;
+    typedef std::function<void(CJobBase *job)> hld_last_job_t;
 
     CWorker(const uint16_t &id){m_id = id;}
 
@@ -22,8 +22,8 @@ public:
     const bool &is_active();
     void do_finish();
     uint32_t num_jobs();
-    bool add_job(const CJob::function_t &function);
-    bool add_job(CJob *job);
+    bool add_job(const CJob_::function_t &function);
+    bool add_job(CJobBase *job);
     const bool &is_calc_idle_fps();
     void set_calc_idle_fps(const bool &calc_idle_fps);
     const uint32_t &idle_fps_vol();
@@ -48,7 +48,7 @@ private:
     std::mutex m_mtx_hld_last_job;
     bool m_active = false;
     bool m_do_finish = true;
-    std::queue<CJob*> m_job_queue;
+    std::queue<CJobBase*> m_job_queue;
     bool m_calc_idle_fps = false;
     uint32_t m_idle_fps_vol = 0;
     uint8_t m_num_idle_fps_average_priod = 0;
@@ -59,7 +59,7 @@ private:
     void set_do_finish_state(const bool &do_finish_state);
     void set_idle_fps(const float &idle_fps);
     const bool &is_do_finishing();
-    CJob *next_job();
+    CJobBase *next_job();
     void work();
 };
 

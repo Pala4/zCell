@@ -3,27 +3,26 @@
 
 #include <map>
 #include <string>
-#include <memory>
 
 #include "zCellSrvLib_global.h"
-#include "thread/cjob.h"
+#include "thread/cjob_.h"
+#include "ccommand.h"
 
 namespace zcell_lib {
 
-class CCommand;
 class CThreadPool;
 
 class ZCELLSRVLIB_EXPORT CCmdManager
 {
 public:
-    typedef std::shared_ptr<CCommand> command_ptr_t;
-
     CCmdManager() = default;
 
     void set_thread_pool(CThreadPool *thread_pool);
-    void create_command(const std::string &cmd_name, const bool &multy_thread,
-                        const CJob::function_t &func);
-    void execute(const std::string &cmd_line, const CJob::args_map_t &ext_args = CJob::args_map_t());
+    command_ptr_t create_command(const std::string &cmd_name, const bool &multy_thread,
+                                 const CCommand::function_t &func);
+    bool add_command(const command_ptr_t &command);
+    bool execute(const std::string &cmd_line,
+                 const CCommand::args_map_t &ext_args = CCommand::args_map_t());
 
     virtual ~CCmdManager() = default;
 private:

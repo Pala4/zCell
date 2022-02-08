@@ -111,12 +111,14 @@ CWorker *CThreadPool::get_worker(const uint16_t &worker_idx)
 
 CWorker *CThreadPool::get_min_load_worker() const
 {
-    return *std::min_element(m_workers.begin(), m_workers.end(),
-    [](CWorker *wrk_a, CWorker *wrk_b) {
-        if ((wrk_a != nullptr) && (wrk_b != nullptr))
-            return wrk_a->num_jobs() < wrk_b->num_jobs();
-        return false;
-    });
+    CWorker *min_wrk = nullptr;
+    for (CWorker *wrk : m_workers) {
+        if (wrk == nullptr)
+            continue;
+        if ((min_wrk == nullptr) || ((min_wrk != nullptr) && (wrk->num_jobs() < min_wrk->num_jobs())))
+            min_wrk = wrk;
+    }
+    return min_wrk;
 }
 
 const bool &CThreadPool::is_started() const
@@ -152,7 +154,7 @@ bool CThreadPool::stop()
     return true;
 }
 
-bool CThreadPool::add_job(const CJob::function_t &function)
+bool CThreadPool::add_job(const CJob_::function_t &function)
 {
     if (function == nullptr)
         return false;
@@ -162,7 +164,7 @@ bool CThreadPool::add_job(const CJob::function_t &function)
     return min_load_worker->add_job(function);
 }
 
-bool CThreadPool::add_job(CJob *job)
+bool CThreadPool::add_job(CJobBase *job)
 {
     if (job == nullptr)
         return false;
@@ -170,7 +172,7 @@ bool CThreadPool::add_job(CJob *job)
     if (min_load_worker == nullptr)
         return false;
     if (!min_load_worker->add_job(job)) {
-        if (job->job_type() == CJob::jt_linear_auto)
+        if (job->job_type() == CJob_::jt_linear_auto)
             delete job;
         return false;
     }
@@ -198,7 +200,7 @@ CWorker *CThreadPool::add_worker(const uint16_t &id)
     worker->set_calc_idle_fps(m_calc_idle_fps);
     worker->set_idle_fps_vol(m_idle_fps_vol);
     worker->set_num_idle_fps_average_period(m_num_idle_fps_average_period);
-    worker->set_hld_last_job([this](CJob *last_job) {
+    worker->set_hld_last_job([this](CJobBase *last_job) {
         if (last_job != nullptr) {
             if (m_hld_last_job != nullptr)
                 m_hld_last_job(last_job);
