@@ -14,7 +14,7 @@ class ZCELLSRVLIB_EXPORT CConvertor
 public:
     CConvertor();
 
-    virtual bool convert(const std::string &val_str, std::any &any_val) = 0;
+    virtual std::any convert(const std::string &val_str) = 0;
 
     virtual ~CConvertor();
 };

@@ -6,7 +6,7 @@
 
 using namespace zcell_lib;
 
-bool CIntConvertor::convert(const std::string &val_str, std::any &any_val)
+std::any CIntConvertor::convert(const std::string &val_str)
 {
     int val_int = 0;
     try {
@@ -14,12 +14,9 @@ bool CIntConvertor::convert(const std::string &val_str, std::any &any_val)
     } catch (std::invalid_argument const &ex) {
         throw CException("CIntConvertor error: incorrect value [" + val_str + "]" +
                          " (" + ex.what() + ")\n");
-        return false;
     } catch (std::out_of_range const &ex) {
         throw CException("CIntConvertor error: incorrect value [" + val_str + "]" +
                          " (" + ex.what() + ")\n");
-        return false;
     }
-    any_val = std::make_any<int>(val_int);
-    return true;
+    return std::make_any<int>(val_int);
 }

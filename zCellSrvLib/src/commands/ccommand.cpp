@@ -2,6 +2,8 @@
 
 #include <iostream>
 
+#include "core/cexception.h"
+
 using namespace zcell_lib;
 
 /*!
@@ -31,10 +33,15 @@ void CCmdExecution::set_name(const std::string &name)
     m_name = name;
 }
 
+void CCmdExecution::execute()
+{
+    run(nullptr);
+}
+
 void CCmdExecution::execute(const args_map_t &args)
 {
     set_args(args);
-    run(nullptr);
+    execute();
 }
 
 void CCmdExecution::do_function()
@@ -74,17 +81,54 @@ CCommand &CCommand::set_async(const bool &async)
     return *this;
 }
 
-const std::map<std::string, converter_ptr_t> &CCommand::convertors()
+const std::string &CCommand::description()
 {
-    std::lock_guard lg(m_mtx_convertors);
-    return m_convertors;
+    std::lock_guard lg(m_mtx_description);
+    return m_description;
 }
 
-CCommand &CCommand::add_convertor(const std::string &name, const converter_ptr_t &convertor)
+CCommand &CCommand::set_description(const std::string &description)
 {
-    std::lock_guard lg(m_mtx_convertors);
-    if (m_convertors.find(name) == m_convertors.end())
-        m_convertors[name] = convertor;
+    std::lock_guard lg(m_mtx_description);
+    m_description = description;
+    return *this;
+}
+
+const std::string &CCommand::usage()
+{
+    std::lock_guard lg(m_mtx_usage);
+    return m_usage;
+}
+
+CCommand &CCommand::set_usage(const std::string &usage)
+{
+    std::lock_guard lg(m_mtx_usage);
+    m_usage = usage;
+    return *this;
+}
+
+const CCommand::argument_defs_t &CCommand::argument_defs()
+{
+    std::lock_guard lg(m_mtx_argument_defs);
+    return m_argument_defs;
+}
+
+CCommand &CCommand::add_argument_def(const std::string &name,
+                                     const converter_ptr_t &convertor,
+                                     bool required,
+                                     const std::string &usage)
+{
+    std::lock_guard lg(m_mtx_argument_defs);
+    auto it = std::find_if(m_argument_defs.begin(), m_argument_defs.end(),
+                           [&name](const auto &argument_def){return (argument_def.name == name);});
+    if (it == m_argument_defs.end()) {
+        argument_def arg_def;
+        arg_def.name = name;
+        arg_def.convertor = convertor;
+        arg_def.required = required;
+        arg_def.usage = usage;
+        m_argument_defs.push_back(arg_def);
+    }
     return *this;
 }
 

@@ -29,8 +29,10 @@ int main(int argc, char *argv[])
     });
     v.cmd_manager()->add_command(cmd_test);
 
+    std::string srv_address = "127.0.0.1";
+    uint16_t srv_port = 5356;
     if (v.start("127.0.0.1", 5356))
-        std::cout << "Server starte" << std::endl;
+        std::printf("Server started at %s:%d", srv_address.c_str(), srv_port);
 
     return app.exec();
 }

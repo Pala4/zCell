@@ -10,7 +10,7 @@ class ZCELLSRVLIB_EXPORT CStringConvertor : public CConvertor
 public:
     CStringConvertor();
 
-    virtual bool convert(const std::string &val_str, std::any &any_val);
+    virtual std::any convert(const std::string &val_str) override;
 };
 
 } // namespace zcell_lib

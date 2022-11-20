@@ -6,8 +6,7 @@ CStringConvertor::CStringConvertor()
 {
 }
 
-bool CStringConvertor::convert(const std::string &val_str, std::any &any_val)
+std::any CStringConvertor::convert(const std::string &val_str)
 {
-    any_val = std::make_any<std::string>(val_str);
-    return true;
+    return std::make_any<std::string>(val_str);
 }

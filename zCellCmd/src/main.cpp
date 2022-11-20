@@ -1,6 +1,6 @@
 #include <QCoreApplication>
 
-#include "network/cclient.h"
+#include "cconclient.h"
 #include "commands/cintconvertor.h"
 #include "commands/cstringconvertor.h"
 #include "thread/cworker.h"
@@ -9,52 +9,82 @@ int main(int argc, char *argv[])
 {
     QCoreApplication app(argc, argv);
 
-    zcell_lib::CClient client;
+    CConClient client;
 
     auto cmd_exit = std::make_shared<zcell_lib::CCommand>();
     cmd_exit->set_name("exit").
             set_async(false).
+            set_description("Exit from application").
+            set_usage("Exit from application").
             set_function([&app, &client](zcell_lib::CJobBase *job,
                          const zcell_lib::CJob_::args_map_t &args) {
-        client.done_input();
-        QCoreApplication::exit();
-    });
+                client.done_input();
+                QCoreApplication::exit();
+            });
     client.add_command(cmd_exit);
+
+    auto cmd_help = std::make_shared<zcell_lib::CCommand>();
+    cmd_help->set_name("help").
+            set_async(false).
+            set_description("Help").
+            set_usage(std::string() + "Show help for command/commands.\nhelp [-cmd <command>]\n" +
+                      "-cmd <command> - show help topic about command. If dropped, then showing " +
+                      "short descriptions for all commands.").
+            add_argument_def("-cmd", zcell_lib::convertor<zcell_lib::CStringConvertor>(), false,
+                             "Show help topic about command. Optional argument.").
+            set_function([&client](zcell_lib::CJobBase *job,
+                         const zcell_lib::CJob_::args_map_t &args) {
+                client.show_help(std::any_cast<std::string>(args.at("-cmd")));
+            });
+    client.add_command(cmd_help);
 
     auto cmd_connect = std::make_shared<zcell_lib::CCommand>();
     cmd_connect->set_name("connect").
             set_async(false).
-            add_convertor("-a", zcell_lib::convertor<zcell_lib::CStringConvertor>()).
-            add_convertor("-p", zcell_lib::convertor<zcell_lib::CIntConvertor>()).
+            set_description("Connect to remote server").
+            set_usage(std::string() +
+                      "Connect to remote server.\nconnect -a <server address> -p <port>").
+            add_argument_def("-a", zcell_lib::convertor<zcell_lib::CStringConvertor>(), true,
+                             "Remote server address. E.g. 127.0.0.1").
+            add_argument_def("-p", zcell_lib::convertor<zcell_lib::CIntConvertor>(), true,
+                             "Remote server access port. [0..65535]").
             set_function([&client](zcell_lib::CJobBase *job,
                          const zcell_lib::CJob_::args_map_t &args) {
-
-        auto client_id = client.connect_to_host(std::any_cast<std::string>(args.at("-a")),
-                                                std::any_cast<int>(args.at("-p")));
-        if (client_id.empty()) {
-            client.output("Error: connection not established!");
-        } else {
-            client.output("Connection established. Client id (cid): " + client_id);
-        }
-    });
+                auto client_id = client.connect_to_host(std::any_cast<std::string>(args.at("-a")),
+                                                        std::any_cast<int>(args.at("-p")));
+                if (client_id.empty()) {
+                    client.output("Error: connection not established!");
+                } else {
+                    client.output("Connection established. Client id (cid): " + client_id);
+                }
+            });
     client.add_command(cmd_connect);
 
     auto cmd_send = std::make_shared<zcell_lib::CCommand>();
     cmd_send->set_name("send").
             set_async(true).
-            add_convertor("-cid", zcell_lib::convertor<zcell_lib::CStringConvertor>()).
-            add_convertor("-cmd", zcell_lib::convertor<zcell_lib::CStringConvertor>()).
+            add_argument_def("-cid", zcell_lib::convertor<zcell_lib::CStringConvertor>()).
+            add_argument_def("-cmd", zcell_lib::convertor<zcell_lib::CStringConvertor>()).
             set_function([&client](zcell_lib::CJobBase *job,
                          const zcell_lib::CJob_::args_map_t &args) {
-
-        auto net_data = std::make_unique<zcell_lib::net_data_t>();
-        net_data->net_data_id = std::any_cast<std::string>(args.at("-cid"));
-        net_data->msg = std::any_cast<std::string>(args.at("-cmd"));
-        if (!client.send_net_data(std::move(net_data))) {
-            client.output("Error: data not sended!");
-        }
-    });
+                auto net_data = std::make_unique<zcell_lib::net_data_t>();
+                net_data->net_data_id = std::any_cast<std::string>(args.at("-cid"));
+                net_data->msg = std::any_cast<std::string>(args.at("-cmd"));
+                if (!client.send_net_data(std::move(net_data))) {
+                    client.output("Error: data not sended!");
+                }
+            });
     client.add_command(cmd_send);
+
+    auto cmd_shell = std::make_shared<zcell_lib::CCommand>();
+    cmd_shell->set_name("shell").
+            set_async(false).
+            add_argument_def("-cid", zcell_lib::convertor<zcell_lib::CStringConvertor>()).
+            set_function([&client](zcell_lib::CJobBase *job,
+                         const zcell_lib::CJob_::args_map_t &args) {
+                client.set_shell(std::any_cast<std::string>(args.at("-cid")));
+            });
+    client.add_command(cmd_shell);
 
     auto cmd_test = std::make_shared<zcell_lib::CCommand>();
     cmd_test->set_name("test").
@@ -75,6 +105,7 @@ int main(int argc, char *argv[])
         }
     });
     client.add_command(cmd_test);
+
     client.init_input();
 
     return app.exec();
