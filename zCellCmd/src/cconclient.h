@@ -8,7 +8,7 @@
 class CConClient : public zcell_lib::CClient
 {
 public:
-    CConClient() = default;
+    CConClient();
     ~CConClient() override;
 public:
     void show_help(const std::string &cmd_name = std::string());
